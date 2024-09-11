@@ -1,0 +1,10 @@
+numpy==1.23.5
+fisher-py
+tqdm
+h5py
+pyopenms
+pandas
+plotly
+kaleido
+alphatims
+nextflow
