@@ -8,7 +8,7 @@ params.group_regex = "(.*)"  // Regex for grouping. This is used for coloring in
 params.export_visualization = false
 
 // Optional Parameters
-params.trafoxmls = "" // RT aligned XMLs (from OpenMS) which need to correspond to the raw_spectra files (for RT alignment). Leave empty for alignment
+params.trafoxmls = "$PWD/trafoxmls" // RT aligned XMLs (from OpenMS) which need to correspond to the raw_spectra files (for RT alignment). Leave empty for alignment
 params.outdir = "$PWD/results"  // Output-Directory of the XICs and visualizations
 
 
