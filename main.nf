@@ -59,7 +59,7 @@ workflow extract_xics {
 
 // Actual retrieval of the XICs using TRFP (Wrapper)
 process retrieve_xics_from_raw_spectra {
-    container "xic-extractor:local"
+    container "luxii/xic-extractor:latest"
     publishDir "${params.outdir}/extracted_xics/", mode:'copy'
 
     cpus 1
@@ -81,7 +81,7 @@ process retrieve_xics_from_raw_spectra {
 
 
 process visualize_xics_via_plotly {
-    container "xic-extractor:local"
+    container "luxii/xic-extractor:latest"
     publishDir "${params.outdir}/extracted_xics_visualized/", mode:'copy'
 
     input:
