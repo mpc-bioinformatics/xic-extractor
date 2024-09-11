@@ -4,7 +4,15 @@ TBD
 
 ## Run This script
 
-TBD
+As long as you have docker/git installed, execute the following:
+
+```shell
+nextflow run mpc-bioinformatics/xic-extractor -r main <params>
+```
+
+Checkout [this link](https://www.nextflow.io/docs/latest/sharing.html) for more information how to run workflows directly from github.
+
+Alternatively you can just use `git pull` and run it via `nextflow run main.nf`.
 
 ## Build docker (to run with a locally build docker image)
 
