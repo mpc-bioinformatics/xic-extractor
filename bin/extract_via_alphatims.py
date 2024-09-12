@@ -79,13 +79,6 @@ def bisect_right_rt(a, x, lo=0, hi=None):
 if __name__ == "__main__":
     args = argparse_setup()
 
-    # args.raw = "/home/luxii/Desktop/temp/raws_xic_extractor/test_TIM/TIM0001958_S1-H1_1_2211.d"
-    # args.query_csv = "/home/luxii/Desktop/denopa_hupo_2024/Auswertung_extract_xics/test_queries_all_fisher_py.csv"
-    # # args.query_csv = "/home/luxii/Nextcloud/MPC/temp/test/20k_all_queries_fisher_test.csv"
-    # # args.query_csv = "/home/luxii/Nextcloud/MPC/temp/test/test_queries_all_fisher_py.csv"
-    # # # args.query_csv = "/home/luxii/Desktop/denopa_hupo_2024/Auswertung_extract_xics/50k_all_queries_fisher_test.csv"
-    # args.out_hdf5 = "test_results_20k_basepeak.hdf5"
-
     data = alphatims.bruker.TimsTOF(args.raw)
 
     with h5py.File(args.out_hdf5, "w") as out_h5, open(args.query_csv, "r") as q_in:
