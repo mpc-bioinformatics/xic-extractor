@@ -63,7 +63,7 @@ process retrieve_xics_from_raw_spectra {
     publishDir "${params.outdir}/extracted_xics/", mode:'copy'
 
     cpus 1
-    memory "12 GB"
+    memory "14 GB"
     stageInMode "copy"
 
     input:

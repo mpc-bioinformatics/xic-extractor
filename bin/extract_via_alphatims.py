@@ -14,6 +14,7 @@ import alphatims
 import alphatims.bruker
 import bisect
 from fisher_py import RawFile
+import pandas as pd 
 
 from fisher_py.raw_file_reader import RawFileReaderAdapter, RawFileAccess
 from fisher_py.data.business import GenericDataTypes, ChromatogramTraceSettings, TraceType, ChromatogramSignal, SpectrumPacketType, Scan, SegmentedScan, ScanStatistics
@@ -33,7 +34,7 @@ def argparse_setup():
 
     return parser.parse_args()
 
-### Modified Python bisect implementations to work with 2 dimensional arrays
+### Modified Python bisect implementations to work with dateframes
 def bisect_left_rt(a, x, lo=0, hi=None):
     """Return the index where to insert item x in list a, assuming a is sorted.
 
@@ -50,7 +51,7 @@ def bisect_left_rt(a, x, lo=0, hi=None):
         hi = a.shape[0]
     while lo < hi:
         mid = (lo+hi)//2
-        if a(mid) < x: lo = mid+1
+        if a["rt_values"].iloc[mid] < x: lo = mid+1
         else: hi = mid
     return lo
 
@@ -71,7 +72,7 @@ def bisect_right_rt(a, x, lo=0, hi=None):
         hi = a.shape[0]
     while lo < hi:
         mid = (lo+hi)//2
-        if x < a(mid): hi = mid
+        if x < a["rt_values"].iloc[mid]: hi = mid
         else: lo = mid+1
     return lo
 
@@ -79,6 +80,9 @@ def bisect_right_rt(a, x, lo=0, hi=None):
 if __name__ == "__main__":
     args = argparse_setup()
 
+    args.raw = "/home/luxii/Desktop/temp_Svitlana/TIM00011105_S1-F5_1_1341.d"
+    args.query_csv = "/home/luxii/Desktop/temp_Svitlana/ISA_SPIKEINS.csv"
+    args.out_hdf5 = "/home/luxii/Desktop/temp_Svitlana/delme.hdf5"
     data = alphatims.bruker.TimsTOF(args.raw)
 
     with h5py.File(args.out_hdf5, "w") as out_h5, open(args.query_csv, "r") as q_in:
@@ -98,6 +102,13 @@ if __name__ == "__main__":
         
         # Load all scans, ms_level and queries into memory
         queries = [l for l in q_csv]  # Process Queries, as they have been added
+        ms1_rt_times = pd.DataFrame(data.convert_from_indices(
+                    data[:, :, 0, :, :, "raw"],
+                    return_rt_values = True,
+                    raw_indices_sorted = True,
+                )).groupby(by="rt_values").first().rename_axis('rt_values').reset_index()
+        ms2_rt_times = pd.DataFrame({"rt_values": data.rt_values})
+        ms2_rt_times = ms2_rt_times[~ms2_rt_times["rt_values"].isin(ms1_rt_times["rt_values"])]
        
         # Set output with variable length array
         dt = h5py.vlen_dtype(np.dtype('float64'))
@@ -130,17 +141,32 @@ if __name__ == "__main__":
 
             # Extract XIC directly
             if ms_val == "ms":
-                xic = data[rt_start_val:rt_end_val, :, 0, :, :][["rt_values", "corrected_intensity_values", "mz_values"]]
+                xic_values = data[rt_start_val:rt_end_val, :, 0, mz_start_val:mz_end_val, :][["rt_values", "corrected_intensity_values"]] \
+                    .groupby(by="rt_values").sum().reset_index()
+
+                # Retrieve the scan idcs (set rt window)
+                l_scan_idx = bisect_left_rt(ms1_rt_times, rt_start_val, lo=0, hi=len(ms1_rt_times))
+                r_scan_idx = bisect_right_rt(ms1_rt_times, rt_end_val, lo=l_scan_idx, hi=len(ms1_rt_times))
+
+                xic_data = ms1_rt_times.iloc[l_scan_idx:r_scan_idx]
+                xic_data.loc[:,"intensities"] = 0
+                xic_data.loc[xic_data["rt_values"].isin(xic_values["rt_values"]), "intensities"] = xic_values["corrected_intensity_values"].values
+
             elif ms_val == "ms2":
-                xic = data[rt_start_val:rt_end_val, :, 1:, :, :][["rt_values", "corrected_intensity_values", "mz_values"]]
+                xic_values = data[rt_start_val:rt_end_val, :, 1:, mz_start_val:mz_end_val, :][["rt_values", "corrected_intensity_values"]] \
+                    .groupby(by="rt_values").sum().reset_index()
+
+                # Retrieve the scan idcs (set rt window)
+                l_scan_idx = bisect_left_rt(ms2_rt_times, rt_start_val, lo=0, hi=len(ms1_rt_times))
+                r_scan_idx = bisect_right_rt(ms2_rt_times, rt_end_val, lo=l_scan_idx, hi=len(ms1_rt_times))
+
+                xic_data = ms2_rt_times.iloc[l_scan_idx:r_scan_idx]
+                xic_data["intensities"] = 0
+                xic_data.loc[xic_data["rt_values"].isin(xic_values["rt_values"]), "intensities"] = xic_values["corrected_intensity_values"].values
+
             else:
                 raise Exception("Cannot extract ms level {}".format(ms_val))
 
-            # Slicing mz values seperately, to also obtain the other measured timepoints where the mz filter does not fit
-            xic.loc[~((xic["mz_values"] >= mz_start_val) & (xic["mz_values"] <= mz_end_val)), "corrected_intensity_values"] = 0
-
-            xic = xic[["rt_values", "corrected_intensity_values"]].groupby(by="rt_values", ).sum()
-
             # Save in h5
-            out_h5["retention_times"][h5_idx] = array.array("d", xic.index/60)
-            out_h5["intensities"][h5_idx] = array.array("d", xic["corrected_intensity_values"])
+            out_h5["retention_times"][h5_idx] = array.array("d", xic_data["rt_values"])
+            out_h5["intensities"][h5_idx] = array.array("d", xic_data["intensities"])
