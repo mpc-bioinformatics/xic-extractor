@@ -104,7 +104,7 @@ if __name__ == "__main__":
                 mode="lines",
                 line=dict(color=color_map[df[df["File"] == key]["Group"].iloc[0]])
             ))
-        fig.update_layout(title="Try Clicking on the Legend Items!")
+        fig.update_layout(title=identifier)
         fig.update_layout(legend=dict(groupclick="toggleitem"))
 
         plotly.offline.plot(fig, filename=args.outdir + os.sep + identifier + ".html", auto_open=False)
