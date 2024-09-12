@@ -165,5 +165,5 @@ if __name__ == "__main__":
                 raise Exception("Cannot extract ms level {}".format(ms_val))
 
             # Save in h5
-            out_h5["retention_times"][h5_idx] = array.array("d", xic_data["rt_values"])
+            out_h5["retention_times"][h5_idx] = array.array("d", xic_data["rt_values"]/60)
             out_h5["intensities"][h5_idx] = array.array("d", xic_data["intensities"])
