@@ -64,7 +64,7 @@ process retrieve_xics_from_raw_spectra {
 
     cpus 1
     memory "12 GB"
-    stageInMode "link"
+    stageInMode "copy"
 
     input:
     tuple path(raw_file), path(queries_json)
@@ -73,9 +73,14 @@ process retrieve_xics_from_raw_spectra {
     tuple val("${raw_file.baseName}"), path("${raw_file.baseName}.hdf5")
 
     """
-    extract_via_fisher.py -raw $raw_file -query_csv $queries_json -out_hdf5 ${raw_file.baseName}.hdf5
+    if [[ $raw_file == *.raw ]]
+    then
+        extract_via_fisher.py -raw $raw_file -query_csv $queries_json -out_hdf5 ${raw_file.baseName}.hdf5
+    else
+        extract_via_alphatims.py -raw $raw_file -query_csv $queries_json -out_hdf5 ${raw_file.baseName}.hdf5
+    fi
 
-    # TODO do this for Bruker!
+    rm -rf $raw_file
     """
 }
 
