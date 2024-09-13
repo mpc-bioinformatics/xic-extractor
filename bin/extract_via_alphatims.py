@@ -1,29 +1,15 @@
 #!/usr/bin/env python
 
 import argparse
-import numpy as np
-import math
-from collections import defaultdict
-import datetime
-import time
-import h5py
-import tqdm
 import array
 import csv
+
 import alphatims
 import alphatims.bruker
-import bisect
-from fisher_py import RawFile
-import pandas as pd 
-
-from fisher_py.raw_file_reader import RawFileReaderAdapter, RawFileAccess
-from fisher_py.data.business import GenericDataTypes, ChromatogramTraceSettings, TraceType, ChromatogramSignal, SpectrumPacketType, Scan, SegmentedScan, ScanStatistics
-from fisher_py.data.filter_enums import MsOrderType
-from fisher_py.data import Device, ToleranceUnits
-from fisher_py.mass_precision_estimator import PrecisionEstimate
-
-
-from fisher_py.net_wrapping import ThermoFisher
+import h5py
+import numpy as np
+import pandas as pd
+import tqdm
 
 
 def argparse_setup():
@@ -96,7 +82,7 @@ if __name__ == "__main__":
         mz_idx = headers.index("mz")
         ppm_idx = headers.index("ppm")
         ms_idx = headers.index("ms_level")
-        
+
         # Load all scans, ms_level and queries into memory
         queries = [l for l in q_csv]  # Process Queries, as they have been added
         ms1_rt_times = pd.DataFrame(data.convert_from_indices(
@@ -106,7 +92,7 @@ if __name__ == "__main__":
                 )).groupby(by="rt_values").first().rename_axis('rt_values').reset_index()
         ms2_rt_times = pd.DataFrame({"rt_values": data.rt_values})
         ms2_rt_times = ms2_rt_times[~ms2_rt_times["rt_values"].isin(ms1_rt_times["rt_values"])]
-       
+
         # Set output with variable length array
         dt = h5py.vlen_dtype(np.dtype('float64'))
         out_h5.create_dataset("retention_times", (len(queries),), dtype=dt, compression="gzip")
@@ -115,7 +101,7 @@ if __name__ == "__main__":
 
         # Retrieve for each single query:
         for h5_idx, l in enumerate(tqdm.tqdm(queries, unit="queries")):
-            # Initialize values 
+            # Initialize values
             ident_val = l[ident_idx]
             mz_start_val = l[mz_start_idx]
             mz_end_val = l[mz_end_idx]

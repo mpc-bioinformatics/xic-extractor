@@ -1,0 +1,7 @@
+identifier,mz_start,mz_end,rt_start,rt_end,mz,ppm,ms_level
+Identifier1,453.12,453.98,15.34,20.34,,,ms
+my_custom_identifier,,,20.432,30.432,895.9493,10,ms
+MS2_level_extraction_is_also_possible,453.12,453.98,15.34,20.34,,,ms2
+PEPTIDESEQ,,,20.432,30.432,895.9493,10,ms2
+Leaving_out_RT_checks_for_the_whole_range,,,,,700.8664,10,ms
+last_xic_example,453.12,453.98,,,,,ms

@@ -1,27 +1,15 @@
 #!/usr/bin/env python
 
 import argparse
-import numpy as np
-import math
-from collections import defaultdict
-import datetime
-import time
-import h5py
-import tqdm
 import array
+import bisect
 import csv
 
-import bisect
-from fisher_py import RawFile
-
-from fisher_py.raw_file_reader import RawFileReaderAdapter, RawFileAccess
-from fisher_py.data.business import GenericDataTypes, ChromatogramTraceSettings, TraceType, ChromatogramSignal, SpectrumPacketType, Scan, SegmentedScan, ScanStatistics
-from fisher_py.data.filter_enums import MsOrderType
-from fisher_py.data import Device, ToleranceUnits
-from fisher_py.mass_precision_estimator import PrecisionEstimate
-
-
-from fisher_py.net_wrapping import ThermoFisher
+import h5py
+import numpy as np
+import tqdm
+from fisher_py.data import Device
+from fisher_py.raw_file_reader import RawFileReaderAdapter
 
 
 def argparse_setup():
@@ -78,7 +66,6 @@ def bisect_right_rt(a, x, lo=0, hi=None):
 if __name__ == "__main__":
     args = argparse_setup()
 
-    data_dict = defaultdict(lambda: list())
     raw_file = RawFileReaderAdapter.file_factory(args.raw)
     raw_file.select_instrument(Device.MS, 1)  # Selecting the MS
 
@@ -99,13 +86,13 @@ if __name__ == "__main__":
         mz_idx = headers.index("mz")
         ppm_idx = headers.index("ppm")
         ms_idx = headers.index("ms_level")
-        
+
         # Load all scans, ms_level and queries into memory
         queries = [l for l in q_csv]  # Process Queries, as they have been added
-        ms_level = [x.ms_order.name.lower() for x in raw_file.get_scan_events(first_scan_number, last_scan_number)] 
-        all_scans_intens = [np.array(raw_file._get_wrapped_object_().GetSegmentedScanFromScanNumber(x, None).Intensities) for x in  range(first_scan_number, last_scan_number)] 
-        all_scans_pos = [np.array(raw_file._get_wrapped_object_().GetSegmentedScanFromScanNumber(x, None).Positions) for x in  range(first_scan_number, last_scan_number)] 
-        
+        ms_level = [x.ms_order.name.lower() for x in raw_file.get_scan_events(first_scan_number, last_scan_number)]
+        all_scans_intens = [np.array(raw_file._get_wrapped_object_().GetSegmentedScanFromScanNumber(x, None).Intensities) for x in  range(first_scan_number, last_scan_number)]
+        all_scans_pos = [np.array(raw_file._get_wrapped_object_().GetSegmentedScanFromScanNumber(x, None).Positions) for x in  range(first_scan_number, last_scan_number)]
+
         # Set output with variable length array
         dt = h5py.vlen_dtype(np.dtype('float64'))
         out_h5.create_dataset("retention_times", (len(queries),), dtype=dt, compression="gzip")
@@ -114,7 +101,7 @@ if __name__ == "__main__":
 
         # Retrieve for each single query:
         for h5_idx, l in enumerate(tqdm.tqdm(queries, unit="queries")):
-            # Initialize values 
+            # Initialize values
             ident_val = l[ident_idx]
             mz_start_val = l[mz_start_idx]
             mz_end_val = l[mz_end_idx]

@@ -1,18 +1,16 @@
 #!/bin/env python
 
 import argparse
-import csv
-import sys
-import json
 import os
-import pyopenms
 import re
+
 import h5py
 import pandas as pd
 import plotly
-import plotly.graph_objects as go
 import plotly.express as ex
-import numpy as np
+import plotly.graph_objects as go
+import pyopenms
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -38,7 +36,7 @@ if __name__ == "__main__":
         # Get Grouping info (if any)
         matches = re.finditer(args.group_regex, filename, re.MULTILINE)
         for matchNum, match in enumerate(matches, start=1):
-            group = (match.group(0))
+            group = match.group(0)
             print(group)
             break
 
@@ -74,7 +72,7 @@ if __name__ == "__main__":
         identifier = label.decode("utf-8")
 
         ### Visualize plots
-        # First create a Pandas Dataframe: 
+        # First create a Pandas Dataframe:
         df_list = []  # [(FileName, Group, RT, Intensity)]
         for key, value in data_dict.items():
             filename = [key]*len(value[2]["retention_times"][idx])
@@ -83,10 +81,10 @@ if __name__ == "__main__":
                 # Apply RT Transformation
                 rts = [value[-1].apply(x*value[1]) for x in value[2]["retention_times"][idx]]
             else:
-                # Just copy the original values    
+                # Just copy the original values
                 rts = [x*value[1] for x in value[2]["retention_times"][idx]]
             intens = value[2]["intensities"][idx]
-            df_list += [(w,x,y,z) for w,x,y,z in zip(filename, group, rts, intens)]
+            df_list += list(zip(filename, group, rts, intens))
 
         df = pd.DataFrame(df_list, columns=["File", "Group", "RT", "Intens"])
 
@@ -102,10 +100,10 @@ if __name__ == "__main__":
                 legendgrouptitle_text="Group: " + df[df["File"] == key]["Group"].iloc[0],
                 name=key,
                 mode="lines",
-                line=dict(color=color_map[df[df["File"] == key]["Group"].iloc[0]])
+                line={"color": color_map[df[df['File'] == key]['Group'].iloc[0]]}
             ))
         fig.update_layout(title=identifier)
-        fig.update_layout(legend=dict(groupclick="toggleitem"))
+        fig.update_layout(legend={"groupclick": 'toggleitem'})
 
         plotly.offline.plot(fig, filename=args.outdir + os.sep + identifier + ".html", auto_open=False)
         fig.write_image(args.outdir + os.sep + identifier + ".png")

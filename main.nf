@@ -2,7 +2,7 @@
 nextflow.enable.dsl=2
 
 // Parameters required for standalone execution
-params.raw_spectra = "$PWD/raws"  // RAW-SPectra (either .d (TODO) or .RAW)
+params.raw_spectra = "$PWD/raws"  // RAW-Spectra (either .d  or .raw)
 params.extraction_csv = "$PWD/xics_to_extract.csv" // A CSV list (as described in the README.md), which tells this worklfow which XICS (or other slicings) to extract
 params.group_regex = "(.*)"  // Regex for grouping. This is used for coloring in the visualizations. Leave empty for no coloring
 params.export_visualization = false
