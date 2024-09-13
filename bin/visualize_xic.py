@@ -106,4 +106,6 @@ if __name__ == "__main__":
         fig.update_layout(legend={"groupclick": 'toggleitem'})
 
         plotly.offline.plot(fig, filename=args.outdir + os.sep + identifier + ".html", auto_open=False)
+        plotly.offline.plot(fig, filename=args.outdir + os.sep + identifier + ".html", auto_open=False)
         fig.write_image(args.outdir + os.sep + identifier + ".png")
+        fig.write_json(args.outdir + os.sep + identifier + ".json")

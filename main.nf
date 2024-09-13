@@ -94,7 +94,7 @@ process visualize_xics_via_plotly {
     path(trafoXMLs_optional)
 
     output:
-    tuple file("*.html"), file("*.png")
+    tuple file("*.html"), file("*.png"), file("*.json")
     """
     CONCAT_HDF5=""
     for file in $hdf5_xics
