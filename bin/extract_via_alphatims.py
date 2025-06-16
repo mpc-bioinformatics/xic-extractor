@@ -97,6 +97,7 @@ if __name__ == "__main__":
         dt = h5py.vlen_dtype(np.dtype('float64'))
         out_h5.create_dataset("retention_times", (len(queries),), dtype=dt, compression="gzip")
         out_h5.create_dataset("intensities", (len(queries),), dtype=dt, compression="gzip")
+        out_h5.create_dataset("mass_to_charge", (len(queries),), dtype=dt, compression="gzip")
         out_h5.create_dataset("labels", data=[x[ident_idx] for x in queries], compression="gzip")
 
         # Retrieve for each single query:
@@ -124,20 +125,25 @@ if __name__ == "__main__":
 
             # Extract XIC directly
             if ms_val == "ms":
-                xic_values = data[rt_start_val:rt_end_val, :, 0, mz_start_val:mz_end_val, :][["rt_values", "corrected_intensity_values"]] \
-                    .groupby(by="rt_values").sum().reset_index()
+                xic_values = data[rt_start_val:rt_end_val, :, 0, mz_start_val:mz_end_val, :][["rt_values", "mz_values", "corrected_intensity_values"]]
+                xic_idcs = xic_values.groupby(by=["rt_values"]).idxmax().reset_index()  # Get BasePeak intensity argmax
+                xic_values = xic_values.loc[xic_idcs["corrected_intensity_values"], ["rt_values", "mz_values", "corrected_intensity_values"]] # Retreive baspeak intensity and mz_value depending on it.
 
                 # Retrieve the scan idcs (set rt window)
                 l_scan_idx = bisect_left_rt(ms1_rt_times, rt_start_val, lo=0, hi=len(ms1_rt_times))
                 r_scan_idx = bisect_right_rt(ms1_rt_times, rt_end_val, lo=l_scan_idx, hi=len(ms1_rt_times))
 
                 xic_data = ms1_rt_times.iloc[l_scan_idx:r_scan_idx]
-                xic_data.loc[:,"intensities"] = 0
+                xic_data.loc[:, "intensities"] = 0
+                xic_data.loc[:, "mass_to_charge"] = 0
                 xic_data.loc[xic_data["rt_values"].isin(xic_values["rt_values"]), "intensities"] = xic_values["corrected_intensity_values"].values
+                xic_data.loc[xic_data["rt_values"].isin(xic_values["rt_values"]), "mass_to_charge"] = xic_values["mz_values"].values
+                xic_data.loc[xic_data["mass_to_charge"] == 0.0, "mass_to_charge"] = (mz_start_val + mz_end_val) / 2  # If no information available, set the average of mz_start and mz_end
 
             elif ms_val == "ms2":
-                xic_values = data[rt_start_val:rt_end_val, :, 1:, mz_start_val:mz_end_val, :][["rt_values", "corrected_intensity_values"]] \
-                    .groupby(by="rt_values").sum().reset_index()
+                xic_values = data[rt_start_val:rt_end_val, :, 1, mz_start_val:mz_end_val, :][["rt_values", "mz_values", "corrected_intensity_values"]]
+                xic_idcs = xic_values.groupby(by=["rt_values"]).idxmax().reset_index()  # Get BasePeak intensity argmax
+                xic_values = xic_values.loc[xic_idcs["corrected_intensity_values"], ["rt_values", "mz_values", "corrected_intensity_values"]] # Retreive baspeak intensity and mz_value depending on it.
 
                 # Retrieve the scan idcs (set rt window)
                 l_scan_idx = bisect_left_rt(ms2_rt_times, rt_start_val, lo=0, hi=len(ms1_rt_times))
@@ -145,7 +151,10 @@ if __name__ == "__main__":
 
                 xic_data = ms2_rt_times.iloc[l_scan_idx:r_scan_idx]
                 xic_data["intensities"] = 0
+                xic_data["mass_to_charge"] = 0
                 xic_data.loc[xic_data["rt_values"].isin(xic_values["rt_values"]), "intensities"] = xic_values["corrected_intensity_values"].values
+                xic_data.loc[xic_data["rt_values"].isin(xic_values["rt_values"]), "mass_to_charge"] = xic_values["mz_values"].values
+                xic_data.loc[xic_data["mass_to_charge"] == 0.0, "mass_to_charge"] = (mz_start_val + mz_end_val) / 2  # If no information available, set the average of mz_start and mz_end
 
             else:
                 raise Exception("Cannot extract ms level {}".format(ms_val))
@@ -153,3 +162,4 @@ if __name__ == "__main__":
             # Save in h5
             out_h5["retention_times"][h5_idx] = array.array("d", xic_data["rt_values"]/60)
             out_h5["intensities"][h5_idx] = array.array("d", xic_data["intensities"])
+            out_h5["mass_to_charge"][h5_idx] = array.array("d", xic_data["mass_to_charge"])

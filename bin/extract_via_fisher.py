@@ -97,6 +97,7 @@ if __name__ == "__main__":
         dt = h5py.vlen_dtype(np.dtype('float64'))
         out_h5.create_dataset("retention_times", (len(queries),), dtype=dt, compression="gzip")
         out_h5.create_dataset("intensities", (len(queries),), dtype=dt, compression="gzip")
+        out_h5.create_dataset("mass_to_charge", (len(queries),), dtype=dt, compression="gzip")
         out_h5.create_dataset("labels", data=[x[ident_idx] for x in queries], compression="gzip")
 
         # Retrieve for each single query:
@@ -127,7 +128,7 @@ if __name__ == "__main__":
             r_scan_idx = bisect_right_rt(raw_file.retention_time_from_scan_number, rt_end_val, lo=l_scan_idx, hi=last_scan_number)
 
             # Retrieve the XIC (filter mz)
-            xic = np.zeros((r_scan_idx - l_scan_idx, 2))
+            xic = np.zeros((r_scan_idx - l_scan_idx, 3))
             bool_arr = np.zeros((r_scan_idx - l_scan_idx,), dtype=bool)
             for idx, i in enumerate(range(l_scan_idx, r_scan_idx)):
                 if ms_level[i-1] == ms_val:
@@ -138,6 +139,7 @@ if __name__ == "__main__":
                     r_pos = bisect.bisect_right(scan_pos, mz_end_val, lo=l_pos, hi=scan_pos.shape[0])
                     xic[idx, 0] = raw_file.retention_time_from_scan_number(i)
                     xic[idx, 1] = scan_intens[l_pos:r_pos].max(initial=0)  # Get the BasePeak if multiple are present!
+                    xic[idx, 2] = scan_pos[l_pos:r_pos][scan_intens[l_pos:r_pos].argmax()] if scan_intens[l_pos:r_pos].size > 0 else (mz_start_val + mz_end_val) / 2  # Get the m/z value of the base peak, if no peak is present, use the average of start and end m/z
                     bool_arr[idx] = True
 
             # Filter values out for skipped entries
@@ -146,3 +148,4 @@ if __name__ == "__main__":
             # Save in h5
             out_h5["retention_times"][h5_idx] = array.array("d", xic[:,0])
             out_h5["intensities"][h5_idx] = array.array("d", xic[:,1])
+            out_h5["mass_to_charge"][h5_idx] = array.array("d", xic[:,2])

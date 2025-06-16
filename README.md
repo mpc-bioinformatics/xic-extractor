@@ -1,6 +1,6 @@
 # XIC-Extractor
 
-A simply XIC-Extractor workflow written in Python and nextflow extracting XICs from `*.raw` and `*.d` files and returning hdf5 files. `n`-many XICs are extracted by providing a m/z-window and a retention time window in CSV-format. From there all peaks at a retention time (`m`-many) are aggregated to the maximum (basepeak), and saved to three arrays in the hdf5 file: `retention_times` (`(n, m)`),  `intensities` (`(n, m)`) and `labels` (`(n,)`). The XIC extraction has been implemented, so that thousands of XICs can be extracted in a short time frame.
+A simply XIC-Extractor workflow written in Python and nextflow extracting XICs from `*.raw` and `*.d` files and returning hdf5 files. `n`-many XICs are extracted by providing a m/z-window and a retention time window in CSV-format. From there all peaks at a retention time (`m`-many) are aggregated to the maximum (basepeak), and saved to foure arrays in the hdf5 file: `retention_times` (`(n, m)`),  `intensities` (`(n, m)`), `mass_to_charge` (`(n, m)`, based on the basepeak) and `labels` (`(n,)`). The XIC extraction has been implemented, so that thousands of XICs can be extracted in a short time frame.
 
 Additinally this workflow provides an optional visualization step, plotting all XICs across the files and optionally, adjusts the retention time if retention time transformation information is provided (`*.trafoXML`).
 
