@@ -32,7 +32,7 @@ downloads this repository automatically and starts the workflow directly. Checko
 Make sure to have `docker buildx` installed. The docker can be build via the following command:
 
 ```shell
-docker build -t xic-extractor:local . -f docker/Dockerfile
+docker build -t luxii/xic-extractor:latest . -f docker/Dockerfile 
 ```
 
 ## Parameters
