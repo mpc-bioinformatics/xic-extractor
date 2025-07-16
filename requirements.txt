@@ -5,6 +5,6 @@ h5py
 pyopenms
 pandas
 plotly
-kaleido
+kaleido==0.2.1
 alphatims
 nextflow
