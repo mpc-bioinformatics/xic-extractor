@@ -1,14 +1,14 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-// Parameters required for standalone execution
+// REQUIRED parameters for standalone execution (defaults are provided as an examples)
 params.raw_spectra = "$PWD/raws"  // RAW-Spectra (either .d  or .raw)
 params.extraction_csv = "$PWD/xics_to_extract.csv" // A CSV list (as described in the README.md), which tells this worklfow which XICS (or other slicings) to extract
 params.group_regex = "(.*)"  // Regex for grouping. This is used for coloring in the visualizations. Leave empty for no coloring
 params.export_visualization = false
 
 // Optional Parameters
-params.trafoxmls = "$PWD/trafoxmls" // RT aligned XMLs (from OpenMS) which need to correspond to the raw_spectra files (for RT alignment). Leave empty for alignment
+params.trafoxmls = "$PWD/trafoxmls" // RT aligned XMLs (from OpenMS) which need to correspond to the raw_spectra files (for RT alignment). Specify an empty folder for no alignment
 params.outdir = "$PWD/results"  // Output-Directory of the XICs and visualizations
 
 
@@ -59,7 +59,7 @@ workflow extract_xics {
 
 // Actual retrieval of the XICs using TRFP (Wrapper)
 process retrieve_xics_from_raw_spectra {
-    container "luxii/xic-extractor:latest"
+    label "xic_extractor"
     publishDir "${params.outdir}/extracted_xics/", mode:'copy'
 
     cpus 1
@@ -86,7 +86,7 @@ process retrieve_xics_from_raw_spectra {
 
 
 process visualize_xics_via_plotly {
-    container "luxii/xic-extractor:latest"
+    label "xic_extractor"
     publishDir "${params.outdir}/extracted_xics_visualized/", mode:'copy'
 
     input:

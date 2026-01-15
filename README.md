@@ -32,8 +32,21 @@ downloads this repository automatically and starts the workflow directly. Checko
 Make sure to have `docker buildx` installed. The docker can be build via the following command:
 
 ```shell
+# Released stable version (uses the version defined in the nextflow config manifest):
+docker build -t luxii/xic-extractor:$(grep 'version = ' nextflow.config | awk -F'"' '{print $2}') . -f docker/Dockerfile 
+# Latest version
 docker build -t luxii/xic-extractor:latest . -f docker/Dockerfile 
 ```
+
+### For Developers and experienced
+
+This workflow can be further configured via nextflow profiles. For development you can use the `-profile development` in order to setup the run command, to let the workflow use the development version. YOu can build the according image via:
+
+```shell
+docker build -t luxii/xic-extractor:development . -f docker/Dockerfile 
+```
+
+Further you can choose the `-profile latest`, in order to use the latest version of the docker image.
 
 ## Parameters
 
