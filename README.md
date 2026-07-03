@@ -22,7 +22,7 @@ to get started. Check further below for required and optional parameters.
 Alternatively you can execute this repository directly via nextflows git capabilities. Executing:
 
 ```shell
-nextflow run mpc-bioinformatics/xic-extractor -r main <params>
+NXF_VER=25.10.4 nextflow run mpc-bioinformatics/xic-extractor -r main <params>
 ```
 
 downloads this repository automatically and starts the workflow directly. Checkout [the nextflow documentation](https://www.nextflow.io/docs/latest/sharing.html) for more information how to run workflows directly from GitHub.
