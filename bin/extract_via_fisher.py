@@ -3,7 +3,9 @@
 import argparse
 import array
 import bisect
+import sys
 import csv
+csv.field_size_limit(sys.maxsize)
 
 import h5py
 import numpy as np
