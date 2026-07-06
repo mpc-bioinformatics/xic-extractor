@@ -2,7 +2,9 @@
 
 import argparse
 import array
+import sys
 import csv
+csv.field_size_limit(sys.maxsize)
 
 import alphatims
 import alphatims.bruker
